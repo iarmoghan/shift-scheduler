@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shift Scheduler</title>
+  <style>body{font-family:system-ui,Arial;margin:2rem} nav a{margin-right:1rem}</style>
+</head>
+<body>
+<nav>
+  <a href="/">Home</a>
+  <a href="/my">My Shifts</a>
+  <a href="/login">Login</a>
+  <a href="/register">Register</a>
+  <a href="/logout">Logout</a>
+</nav>
+<hr>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul>{% for m in messages %}<li>{{ m }}</li>{% endfor %}</ul>
+  {% endif %}
+{% endwith %}
+{% block content %}{% endblock %}
+</body>
+</html>
