@@ -1,21 +1,47 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Upcoming Shifts</h2>
-<table border="1" cellpadding="6">
-  <tr><th>Title</th><th>When</th><th>Where</th><th>Spots left</th><th>Action</th></tr>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Upcoming Shifts</h2>
+  <form class="row g-2" method="get" action="/">
+    <div class="col-auto">
+      <input class="form-control" type="text" name="q" placeholder="Search title or location" value="{{ q or '' }}">
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-primary" type="submit">Search</button>
+      <a class="btn btn-outline-secondary" href="/">Reset</a>
+    </div>
+  </form>
+</div>
+
+<div class="table-responsive">
+<table class="table table-striped align-middle">
+  <thead class="table-light">
+    <tr><th>Title</th><th>When</th><th>Where</th><th>Spots left</th><th style="width: 140px;">Action</th></tr>
+  </thead>
+  <tbody>
   {% for s in shifts %}
-  {% set spots_left = s['capacity'] - s['taken'] %}
-  <tr>
-    <td>{{ s['title'] }}</td>
-    <td>{{ s['starts_at'] }} – {{ s['ends_at'] }}</td>
-    <td>{{ s['location'] }}</td>
-    <td>{{ spots_left }}</td>
-    <td>
-      <form method="post" action="/shifts/{{ s['id'] }}/signups">
-        <button {% if spots_left <= 0 %}disabled{% endif %}>Sign Up</button>
-      </form>
-    </td>
-  </tr>
+    {% set spots_left = s['capacity'] - s['taken'] %}
+    <tr>
+      <td class="fw-medium">{{ s['title'] }}</td>
+      <td><small>{{ s['starts_at'] }} – {{ s['ends_at'] }}</small></td>
+      <td>{{ s['location'] }}</td>
+      <td>
+        {% if spots_left > 0 %}
+          <span class="badge text-bg-success">{{ spots_left }}</span>
+        {% else %}
+          <span class="badge text-bg-secondary">Full</span>
+        {% endif %}
+      </td>
+      <td>
+        <form method="post" action="/shifts/{{ s['id'] }}/signups" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-sm btn-primary" {% if spots_left <= 0 %}disabled{% endif %}>Sign Up</button>
+        </form>
+      </td>
+    </tr>
   {% endfor %}
+  </tbody>
 </table>
+</div>
 {% endblock %}
+
