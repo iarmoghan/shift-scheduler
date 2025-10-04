@@ -80,29 +80,7 @@ Images live in `docs/screenshots/`:
 * Actions: [https://github.com/iarmoghan/shift-scheduler/actions](https://github.com/iarmoghan/shift-scheduler/actions)
 * Releases: [https://github.com/iarmoghan/shift-scheduler/releases](https://github.com/iarmoghan/shift-scheduler/releases)
 
-````
 
----
-
-### `docs/index.md`
-```md
-# Volunteer Shift Scheduler
-
-This is my small web app to create volunteer shifts and let volunteers claim or cancel spots.
-
----
-
-## Quickstart
-
-```bash
-python3 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-python app.py
-````
-
-Then I open **[http://127.0.0.1:5000](http://127.0.0.1:5000)**
-
-**Admin for local dev:** `admin@example.com` / `admin123`
 
 ---
 
