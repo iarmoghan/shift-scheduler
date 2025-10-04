@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">All Shifts</h2>
+  <a class="btn btn-primary btn-sm" href="/admin/shifts/new">New Shift</a>
+</div>
+
+{% if not shifts %}
+  <p class="text-muted">No shifts yet.</p>
+{% else %}
+<div class="table-responsive">
+<table class="table table-striped align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>Title</th>
+      <th>When</th>
+      <th>Where</th>
+      <th>Capacity</th>
+      <th>Signed</th>
+      <th>Waitlist</th>
+      <th style="width: 200px;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for s in shifts %}
+  <tr>
+    <td class="fw-medium">{{ s['title'] }}</td>
+    <td><small>{{ format_range(s['starts_at'], s['ends_at']) }}</small></td>
+    <td>{{ s['location'] }}</td>
+    <td>{{ s['capacity'] }}</td>
+    <td>{{ s['taken'] }}</td>
+    <td>{{ s['wait_ct'] }}</td>
+    <td>
+      <a class="btn btn-sm btn-outline-secondary" href="/admin/shifts/{{ s['id'] }}/edit">Edit</a>
+      <form method="post" action="/admin/shifts/{{ s['id'] }}/delete" class="d-inline" onsubmit="return confirm('Delete this shift? This removes signups and waitlist for it.');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-sm btn-outline-danger">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% endblock %}

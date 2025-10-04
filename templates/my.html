@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2 class="mb-3">My Shifts</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">My Shifts</h2>
+  <a class="btn btn-outline-secondary btn-sm" href="/my.ics">Download .ics</a>
+</div>
+
 {% if not items %}
   <p>No signups yet.</p>
 {% else %}
@@ -13,7 +17,7 @@
   {% for i in items %}
   <tr>
     <td>{{ i['title'] }}</td>
-    <td><small>{{ i['starts_at'] }} – {{ i['ends_at'] }}</small></td>
+    <td><small>{{ format_range(i['starts_at'], i['ends_at']) }}</small></td>
     <td>
       <form method="post" action="/signups/{{ i['signup_id'] }}/cancel">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -27,3 +31,4 @@
 </div>
 {% endif %}
 {% endblock %}
+

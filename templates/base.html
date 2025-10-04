@@ -17,7 +17,14 @@
         <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="/my">My Shifts</a></li>
         {% if session.role == 'ADMIN' %}
-          <li class="nav-item"><a class="nav-link" href="/admin/shifts/new">Admin: New Shift</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="adm" role="button" data-bs-toggle="dropdown" aria-expanded="false">Admin</a>
+            <ul class="dropdown-menu" aria-labelledby="adm">
+              <li><a class="dropdown-item" href="/admin/shifts">All Shifts</a></li>
+              <li><a class="dropdown-item" href="/admin/shifts/new">New Shift</a></li>
+              <li><a class="dropdown-item" href="/admin/signups.csv">Export Signups (CSV)</a></li>
+            </ul>
+          </li>
         {% endif %}
       </ul>
       <div class="d-flex">
@@ -46,4 +53,3 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
