@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Upcoming Shifts</h2>
+<table border="1" cellpadding="6">
+  <tr><th>Title</th><th>When</th><th>Where</th><th>Spots left</th></tr>
+  {% for s in shifts %}
+  <tr>
+    <td>{{ s['title'] }}</td>
+    <td>{{ s['starts_at'] }} – {{ s['ends_at'] }}</td>
+    <td>{{ s['location'] }}</td>
+    <td>{{ s['capacity'] - s['taken'] }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

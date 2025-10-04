@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>My Shifts</h2>
+{% if not items %}
+<p>No signups yet.</p>
+{% else %}
+<table border="1" cellpadding="6">
+  <tr><th>Shift</th><th>When</th></tr>
+  {% for i in items %}
+  <tr>
+    <td>{{ i['title'] }}</td>
+    <td>{{ i['starts_at'] }} – {{ i['ends_at'] }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+{% endblock %}
