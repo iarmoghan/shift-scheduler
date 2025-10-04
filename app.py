@@ -27,13 +27,14 @@ def init_db():
     # run schema
     with open(os.path.join(os.path.dirname(__file__), "schema.sql"), "r") as f:
         db.executescript(f.read())
-    # seed admin + one sample shift if empty
+    # seed admin
     count = db.execute("SELECT COUNT(*) AS c FROM app_user").fetchone()["c"]
     if count == 0:
         db.execute(
             "INSERT INTO app_user(email,password_hash,role) VALUES (?,?,?)",
             ("admin@example.com", generate_password_hash("admin123"), "ADMIN"),
         )
+    # seed example shift
     if db.execute("SELECT COUNT(*) AS c FROM shift").fetchone()["c"] == 0:
         starts = (datetime.now() + timedelta(days=1)).replace(hour=9, minute=0, second=0, microsecond=0)
         ends = starts + timedelta(hours=3)
@@ -55,6 +56,16 @@ def login_required(fn):
     def wrapper(*args, **kwargs):
         if not current_user():
             return redirect(url_for("login"))
+        return fn(*args, **kwargs)
+    return wrapper
+
+def admin_required(fn):
+    from functools import wraps
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if session.get("role") != "ADMIN":
+            flash("Admin only")
+            return redirect(url_for("index"))
         return fn(*args, **kwargs)
     return wrapper
 
@@ -98,7 +109,6 @@ def logout():
 # ---------- routes: core pages ----------
 @app.get("/")
 def index():
-    # list future shifts with spots left
     rows = get_db().execute(
         """
         SELECT s.*,
@@ -113,7 +123,6 @@ def index():
 @app.get("/my")
 @login_required
 def my_shifts():
-    # will be populated in the next step when we add signups
     items = get_db().execute(
         """
         SELECT s.title, s.starts_at, s.ends_at, su.id AS signup_id
@@ -125,11 +134,64 @@ def my_shifts():
     ).fetchall()
     return render_template("my.html", items=items)
 
+# ---------- routes: sign up / cancel ----------
+@app.post("/shifts/<int:shift_id>/signups")
+@login_required
+def sign_up(shift_id):
+    db = get_db()
+    me = current_user()
+    shift = db.execute("SELECT * FROM shift WHERE id=?", (shift_id,)).fetchone()
+    if not shift:
+        flash("Shift not found")
+        return redirect(url_for("index"))
+    taken = db.execute("SELECT COUNT(*) AS c FROM signup WHERE shift_id=?", (shift_id,)).fetchone()["c"]
+    if taken >= shift["capacity"]:
+        flash("Shift is full")
+        return redirect(url_for("index"))
+    try:
+        db.execute("INSERT INTO signup(shift_id,user_id) VALUES (?,?)", (shift_id, me["id"]))
+        db.commit()
+        flash("Signed up")
+    except sqlite3.IntegrityError:
+        flash("You are already signed up for this shift")
+    return redirect(url_for("my_shifts"))
+
+@app.post("/signups/<int:signup_id>/cancel")
+@login_required
+def cancel(signup_id):
+    db = get_db()
+    db.execute("DELETE FROM signup WHERE id=?", (signup_id,))
+    db.commit()
+    flash("Cancelled")
+    return redirect(url_for("my_shifts"))
+
+# ---------- routes: admin create shift ----------
+@app.get("/admin/shifts/new")
+@admin_required
+def admin_new_shift():
+    return render_template("admin_new_shift.html")
+
+@app.post("/admin/shifts")
+@admin_required
+def admin_create_shift():
+    title = request.form["title"].strip()
+    location = request.form.get("location", "").strip()
+    starts_at = request.form["starts_at"]
+    ends_at = request.form["ends_at"]
+    capacity = max(1, int(request.form.get("capacity", 1)))
+    db = get_db()
+    db.execute(
+        "INSERT INTO shift(title,location,starts_at,ends_at,capacity) VALUES (?,?,?,?,?)",
+        (title, location, starts_at, ends_at, capacity),
+    )
+    db.commit()
+    flash("Shift created")
+    return redirect(url_for("index"))
+
 # ---------- entrypoint ----------
 if __name__ == "__main__":
-    # ensure DB file exists and is initialized
     if not os.path.exists(DB_PATH):
         open(DB_PATH, "a").close()
     with app.app_context():
         init_db()
-    app.run(debug=True)
+    app.run(debug=True, host="127.0.0.1", port=5000)

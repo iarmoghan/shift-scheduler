@@ -9,10 +9,17 @@
 <nav>
   <a href="/">Home</a>
   <a href="/my">My Shifts</a>
-  <a href="/login">Login</a>
-  <a href="/register">Register</a>
-  <a href="/logout">Logout</a>
+  {% if session.role == 'ADMIN' %}
+    <a href="/admin/shifts/new">Admin: New Shift</a>
+  {% endif %}
+  {% if session.uid %}
+    <a href="/logout">Logout</a>
+  {% else %}
+    <a href="/login">Login</a>
+    <a href="/register">Register</a>
+  {% endif %}
 </nav>
+
 <hr>
 {% with messages = get_flashed_messages() %}
   {% if messages %}
