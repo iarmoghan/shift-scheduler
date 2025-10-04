@@ -1,22 +1,29 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>My Shifts</h2>
+<h2 class="mb-3">My Shifts</h2>
 {% if not items %}
-<p>No signups yet.</p>
+  <p>No signups yet.</p>
 {% else %}
-<table border="1" cellpadding="6">
-  <tr><th>Shift</th><th>When</th><th>Action</th></tr>
+<div class="table-responsive">
+<table class="table table-striped align-middle">
+  <thead class="table-light">
+    <tr><th>Shift</th><th>When</th><th style="width: 140px;">Action</th></tr>
+  </thead>
+  <tbody>
   {% for i in items %}
   <tr>
     <td>{{ i['title'] }}</td>
-    <td>{{ i['starts_at'] }} – {{ i['ends_at'] }}</td>
+    <td><small>{{ i['starts_at'] }} – {{ i['ends_at'] }}</small></td>
     <td>
       <form method="post" action="/signups/{{ i['signup_id'] }}/cancel">
-        <button>Cancel</button>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-sm btn-outline-danger">Cancel</button>
       </form>
     </td>
   </tr>
   {% endfor %}
+  </tbody>
 </table>
+</div>
 {% endif %}
 {% endblock %}

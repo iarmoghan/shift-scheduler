@@ -2,12 +2,24 @@ import os, sqlite3
 from flask import Flask, g, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
+from flask_wtf.csrf import CSRFProtect, generate_csrf
+
+# ---- use PBKDF2 instead of scrypt (fixes your error) ----
+HASH_METHOD = "pbkdf2:sha256"
 
 DB_PATH = os.environ.get("DB_PATH", os.path.join(os.path.dirname(__file__), "shifts.db"))
 SECRET = os.environ.get("SECRET_KEY", "dev_secret_change_me")
 
 app = Flask(__name__)
 app.config.update(SECRET_KEY=SECRET)
+
+# CSRF protection
+csrf = CSRFProtect(app)
+
+@app.context_processor
+def inject_csrf_token():
+    # lets you call {{ csrf_token() }} in templates
+    return dict(csrf_token=generate_csrf)
 
 # ---------- DB helpers ----------
 def get_db():
@@ -32,7 +44,7 @@ def init_db():
     if count == 0:
         db.execute(
             "INSERT INTO app_user(email,password_hash,role) VALUES (?,?,?)",
-            ("admin@example.com", generate_password_hash("admin123"), "ADMIN"),
+            ("admin@example.com", generate_password_hash("admin123", method=HASH_METHOD), "ADMIN"),
         )
     # seed example shift
     if db.execute("SELECT COUNT(*) AS c FROM shift").fetchone()["c"] == 0:
@@ -75,11 +87,14 @@ def register():
     if request.method == "POST":
         email = request.form["email"].strip().lower()
         pw = request.form["password"]
+        if not email or not pw:
+            flash("Email and password are required")
+            return render_template("register.html")
         db = get_db()
         try:
             db.execute(
                 "INSERT INTO app_user(email,password_hash,role) VALUES (?,?,?)",
-                (email, generate_password_hash(pw), "VOLUNTEER"),
+                (email, generate_password_hash(pw, method=HASH_METHOD), "VOLUNTEER"),
             )
             db.commit()
             flash("Registration successful. Please log in.")
@@ -109,16 +124,22 @@ def logout():
 # ---------- routes: core pages ----------
 @app.get("/")
 def index():
-    rows = get_db().execute(
-        """
-        SELECT s.*,
-               COALESCE((SELECT COUNT(*) FROM signup x WHERE x.shift_id=s.id),0) AS taken
-        FROM shift s
-        WHERE datetime(s.ends_at) > datetime('now')
-        ORDER BY s.starts_at ASC
-        """
-    ).fetchall()
-    return render_template("index.html", shifts=rows, me=current_user())
+    # simple search/filter by title/location
+    q = request.args.get("q", "").strip()
+    sql = """
+      SELECT s.*,
+             COALESCE((SELECT COUNT(*) FROM signup x WHERE x.shift_id=s.id),0) AS taken
+      FROM shift s
+      WHERE datetime(s.ends_at) > datetime('now')
+    """
+    params = []
+    if q:
+        sql += " AND (LOWER(s.title) LIKE ? OR LOWER(s.location) LIKE ?)"
+        pattern = f"%{q.lower()}%"
+        params.extend([pattern, pattern])
+    sql += " ORDER BY s.starts_at ASC"
+    rows = get_db().execute(sql, params).fetchall()
+    return render_template("index.html", shifts=rows, me=current_user(), q=q)
 
 @app.get("/my")
 @login_required
@@ -179,6 +200,9 @@ def admin_create_shift():
     starts_at = request.form["starts_at"]
     ends_at = request.form["ends_at"]
     capacity = max(1, int(request.form.get("capacity", 1)))
+    if not title or not starts_at or not ends_at:
+        flash("Title, starts and ends are required")
+        return redirect(url_for("admin_new_shift"))
     db = get_db()
     db.execute(
         "INSERT INTO shift(title,location,starts_at,ends_at,capacity) VALUES (?,?,?,?,?)",
