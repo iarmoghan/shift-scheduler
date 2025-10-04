@@ -155,3 +155,15 @@ I keep them in `docs/screenshots/` and embed like this:
 - Issues: https://github.com/iarmoghan/shift-scheduler/issues  
 - Actions: https://github.com/iarmoghan/shift-scheduler/actions  
 - Releases: https://github.com/iarmoghan/shift-scheduler/releases
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.mermaid) {
+      mermaid.initialize({ startOnLoad: false, securityLevel: "strict" });
+      // Render fenced code blocks with ```mermaid
+      mermaid.run({ querySelector: ".language-mermaid" });
+    }
+  });
+</script>
+
