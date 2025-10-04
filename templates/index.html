@@ -13,35 +13,45 @@
   </form>
 </div>
 
-<div class="table-responsive">
-<table class="table table-striped align-middle">
-  <thead class="table-light">
-    <tr><th>Title</th><th>When</th><th>Where</th><th>Spots left</th><th style="width: 140px;">Action</th></tr>
-  </thead>
-  <tbody>
+{% if not shifts %}
+  <p class="text-muted">No upcoming shifts.</p>
+{% else %}
+<div class="row g-3">
   {% for s in shifts %}
     {% set spots_left = s['capacity'] - s['taken'] %}
-    <tr>
-      <td class="fw-medium">{{ s['title'] }}</td>
-      <td><small>{{ s['starts_at'] }} – {{ s['ends_at'] }}</small></td>
-      <td>{{ s['location'] }}</td>
-      <td>
-        {% if spots_left > 0 %}
-          <span class="badge text-bg-success">{{ spots_left }}</span>
-        {% else %}
-          <span class="badge text-bg-secondary">Full</span>
-        {% endif %}
-      </td>
-      <td>
-        <form method="post" action="/shifts/{{ s['id'] }}/signups" class="d-inline">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="btn btn-sm btn-primary" {% if spots_left <= 0 %}disabled{% endif %}>Sign Up</button>
-        </form>
-      </td>
-    </tr>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">{{ s['title'] }}</h5>
+          <p class="card-text mb-1"><strong>When:</strong> <small>{{ format_range(s['starts_at'], s['ends_at']) }}</small></p>
+          <p class="card-text mb-1"><strong>Where:</strong> {{ s['location'] }}</p>
+          <p class="card-text">
+            {% if spots_left > 0 %}
+              <span class="badge text-bg-success">{{ spots_left }} spots left</span>
+            {% else %}
+              <span class="badge text-bg-secondary">Full</span>
+              {% if s['wait_ct'] > 0 %}
+                <span class="badge text-bg-info">{{ s['wait_ct'] }} in waitlist</span>
+              {% endif %}
+            {% endif %}
+          </p>
+        </div>
+        <div class="card-footer bg-white">
+          {% if spots_left > 0 %}
+            <form method="post" action="/shifts/{{ s['id'] }}/signups" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-primary btn-sm">Sign Up</button>
+            </form>
+          {% else %}
+            <form method="post" action="/shifts/{{ s['id'] }}/waitlist" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-outline-primary btn-sm">Join Waitlist</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
   {% endfor %}
-  </tbody>
-</table>
 </div>
+{% endif %}
 {% endblock %}
-

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-3">Edit Shift</h2>
+<form method="post" action="/admin/shifts/{{ s['id'] }}/update" class="row gy-3" style="max-width:520px">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="col-12">
+    <label class="form-label">Title</label>
+    <input class="form-control" name="title" value="{{ s['title'] }}" required>
+  </div>
+  <div class="col-12">
+    <label class="form-label">Location</label>
+    <input class="form-control" name="location" value="{{ s['location'] }}">
+  </div>
+  <div class="col-md-6">
+    <label class="form-label">Starts</label>
+    <input class="form-control" type="datetime-local" name="starts_at" value="{{ s['starts_at'] }}">
+  </div>
+  <div class="col-md-6">
+    <label class="form-label">Ends</label>
+    <input class="form-control" type="datetime-local" name="ends_at" value="{{ s['ends_at'] }}">
+  </div>
+  <div class="col-12">
+    <label class="form-label">Capacity</label>
+    <input class="form-control" type="number" name="capacity" min="1" value="{{ s['capacity'] }}">
+  </div>
+  <div class="col-12">
+    <button class="btn btn-primary">Save</button>
+    <a class="btn btn-outline-secondary ms-2" href="/admin/shifts">Cancel</a>
+  </div>
+</form>
+{% endblock %}
