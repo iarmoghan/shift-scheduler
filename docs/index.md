@@ -70,12 +70,15 @@ flowchart LR
 
 ## Data model (tables)
 
-```sql
-app_user(id, email UNIQUE, password_hash, role ['ADMIN'|'VOLUNTEER'])
-shift(id, title, location, starts_at ISO, ends_at ISO, capacity)
-signup(id, shift_id FK, user_id FK, created_at)
-waitlist(id, shift_id FK, user_id FK, created_at)  -- v3.0
-```
+## Data model (tables)
+
+| Table     | Columns (key → type)                                                                                                                                     | Notes |
+|-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
+| app_user  | id **PK** → INTEGER; email → TEXT **UNIQUE**; password_hash → TEXT; role → `ADMIN`/`VOLUNTEER`                                                          | Users with roles |
+| shift     | id **PK** → INTEGER; title → TEXT; location → TEXT; starts_at → TEXT (ISO); ends_at → TEXT (ISO); capacity → INTEGER                                    | Shift definition |
+| signup    | id **PK** → INTEGER; shift_id **FK** → INTEGER; user_id **FK** → INTEGER; created_at → TEXT; **UNIQUE**(shift_id, user_id)                               | One signup per user per shift |
+| waitlist  | id **PK** → INTEGER; shift_id **FK** → INTEGER; user_id **FK** → INTEGER; created_at → TEXT                                                              | v3.0 feature |
+
 
 ---
 
