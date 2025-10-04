@@ -1,90 +1,157 @@
 # Volunteer Shift Scheduler
 
-I built a small app that lets an organisation create volunteer shifts and lets volunteers claim or cancel spots.
+I built a lightweight volunteer shift scheduler to make sign-ups easy. Admins create shifts with titles, times, locations, and capacity. Volunteers can browse and search upcoming shifts, sign up, cancel, and if a shift is full—join a waitlist that auto-promotes when someone drops out. The app includes a clean Bootstrap UI, secure auth (PBKDF2 + CSRF), and exports: volunteers can download their shifts as an .ics calendar file and admins can export signups as CSV.
+
 
 ---
 
-## Quickstart (how I run it locally)
+## Summary (what this does)
+I built a lightweight volunteer shift scheduler to make sign-ups easy. Admins create shifts with titles, times, locations, and capacity. Volunteers can browse and search upcoming shifts, sign up, cancel, and—if a shift is full—join a waitlist that auto-promotes when someone drops out. The app has a clean Bootstrap UI, secure auth (PBKDF2 + CSRF), and exports: volunteers can download their shifts as an **.ics** calendar file and admins can export signups as **CSV**.
+
+---
+
+## Demo & How I run it
+
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python app.py
 ```
-Then I open **http://127.0.0.1:5000** in my browser.
 
-**Default admin (seeded):** `admin@example.com` / `admin123` *(I change this later.)*
+Then I open **http://127.0.0.1:5000**
+
+**Admin for local dev:** `admin@example.com` / `admin123`
+
+Project site (Pages): **https://iarmoghan.github.io/shift-scheduler/**
 
 ---
 
-## Features (MVP)
-- Admin creates shifts (title, time window, location, capacity)
-- Volunteers register / log in
-- Home page lists upcoming shifts with **spots left**
-- Volunteers can **sign up** (capacity guarded) and **cancel** from **/my**
-- Simple UI with Jinja templates
-- Tiny automated test + GitHub Actions (CI)
+## Core features (v3.0)
+- Waitlist with **auto-promotion** when someone cancels on a full shift
+- **Admin**: list, edit, delete shifts
+- **Exports**: `/my.ics` (calendar for volunteers), `/admin/signups.csv` (CSV for admins)
+- Card-style Home UI + nicer date formatting
+- Validation: **End time must be after Start time**
+- Security: password hashing (PBKDF2) and CSRF on all POST forms
+
+*(Previous versions: v2.0 added Bootstrap UI, search/filter, CSRF; v1.0 shipped the MVP + CI + Pages.)*
+
+---
+
+## Quick workflow
+
+**Admin**
+1. Log in as admin → **Admin → New Shift**.
+2. Fill title, location, start/end, capacity → **Create**.
+3. View **Admin → All Shifts** to edit or delete. Validation stops End ≤ Start.
+
+**Volunteer**
+1. Register/login → browse Home.
+2. Use search box to filter by title/location.
+3. Click **Sign Up** (or **Join Waitlist** if full).
+4. See your shifts in **/my**; cancel from there.
+5. Download **/my.ics** to add shifts to your calendar.
 
 ---
 
 ## Architecture
+
 ```mermaid
 flowchart LR
-  V[Volunteer] --> UI[Flask + Jinja]
-  A[Admin] --> UI
+  A[Admin] --> UI["Flask + Jinja (Bootstrap)"]
+  V[Volunteer] --> UI
   UI --> DB[(SQLite)]
+  UI --> ICS["ICS export (.ics)"]
+  UI --> CSV["CSV export"]
+```
+
+
+---
+
+## Data model (tables)
+
+```sql
+app_user(id, email UNIQUE, password_hash, role ['ADMIN'|'VOLUNTEER'])
+shift(id, title, location, starts_at ISO, ends_at ISO, capacity)
+signup(id, shift_id FK, user_id FK, created_at)
+waitlist(id, shift_id FK, user_id FK, created_at)  -- v3.0
 ```
 
 ---
 
-## Routes (current)
-- `GET /` — list upcoming shifts
-- `POST /shifts/<id>/signups` — sign up (login required)
-- `GET /my` — see my signups (login required)
-- `POST /signups/<id>/cancel` — cancel my signup (login required)
-- `GET /admin/shifts/new` — admin form
-- `POST /admin/shifts` — create shift (admin only)
-- `GET /login` · `POST /login` · `GET /register` · `POST /register` · `GET /logout`
+## Routes (high level)
+
+| Method | Path                            | Who        | Purpose                          |
+|-------:|---------------------------------|------------|----------------------------------|
+| GET    | `/`                             | Public     | List upcoming shifts (+ `?q=`)   |
+| GET    | `/my`                           | Volunteer  | My signups                       |
+| POST   | `/shifts/<id>/signups`          | Volunteer  | Sign up                          |
+| POST   | `/shifts/<id>/waitlist`         | Volunteer  | Join waitlist if full            |
+| POST   | `/signups/<id>/cancel`          | Volunteer  | Cancel my signup                 |
+| GET    | `/my.ics`                       | Volunteer  | Download calendar of my shifts   |
+| GET    | `/admin/shifts`                 | Admin      | All shifts list                  |
+| GET    | `/admin/shifts/new`             | Admin      | Create form                      |
+| POST   | `/admin/shifts`                 | Admin      | Create shift (validates End > Start) |
+| GET    | `/admin/shifts/<id>/edit`       | Admin      | Edit form                        |
+| POST   | `/admin/shifts/<id>/update`     | Admin      | Update (validates End > Start)   |
+| POST   | `/admin/shifts/<id>/delete`     | Admin      | Delete shift                     |
+| GET    | `/admin/signups.csv`            | Admin      | Export all signups as CSV        |
 
 ---
 
-## Screenshots (for my report)
-I store proof in `docs/screenshots/` and reference them here:
-- ![Home](home-initial.png)
-- ![PR open](pr-open.png)
-- ![pr merged](pr-merged.png)
+## Security notes
+- Passwords are **hashed** (PBKDF2 via Werkzeug).
+- **CSRF** tokens on all POST forms (Flask-WTF).
+- Server-side validation: **End time must be after Start time**.
+- For a production deploy I’d add HTTPS, stricter cookies, input sanitisation, and rate limiting.
+
+---
+
+## Exports
+- **Calendar (.ics)** — volunteers download **/my.ics** and import events into Google/Apple/Outlook.
+- **CSV** — admins download **/admin/signups.csv** with `shift_title, starts_at, ends_at, user_email`.
+
+---
+
+## Version history (changelog)
+
+- **v3.0** — waitlist + auto-promotion, admin edit/delete, ICS & CSV exports, card UI, date validation  
+- **v2.0** — Bootstrap UI, search/filter, CSRF  
+- **v1.0** — MVP (list, auth, signup/cancel, admin create), CI, Pages
+
+---
+
+## Version control evidence (what I used)
+- **Issues** with labels; grouped under **Milestones** (`v1.0`, `v2.0`, `v3.0`)
+- **Project board** (To do → In progress → Done)
+- Work on **feature branches** → **Pull Requests** → merged into `main`
+- **GitHub Actions** CI on each PR (green checks)
+- **GitHub Pages** for this site
+- **Releases**: v1.0, v2.0, v3.0
+
+---
+
+## Screenshots for my report
+
+I keep them in `docs/screenshots/` and embed like this:
+
+```md
+![PR open](screenshots/pr-feature-open.png)
+![PR merged](screenshots/pr-feature-merged.png)
+![Pages site](screenshots/pages.png)
+![Release v1.0](screenshots/release-v1.0.png)
+![Release v2.0](screenshots/release-v2.0.png)
+![Release v3.0](screenshots/release-v3.0.png)
+```
 
 *(If an image doesn’t show yet, I add it later.)*
 
 ---
 
-## Version Control Evidence (what I used)
-- **Issues** with labels; grouped under **Milestone `v1.0`**
-- **Project board** (To do / In progress / Done)
-- Work on **feature branches** → **Pull Requests** → **Merged** into `main`
-- **GitHub Actions** runs on each PR (green)
-- **GitHub Pages** (this site)
-- **Release** `v1.0` with notes
-
----
-
 ## Links
-- Repo: https://github.com/<your-username>/shift-scheduler
-- Issues: https://github.com/<your-username>/shift-scheduler/issues
-- Project Board: <paste your board URL>
-- Milestone: https://github.com/<your-username>/shift-scheduler/milestones
-- Actions: https://github.com/<your-username>/shift-scheduler/actions
-- Latest Release: https://github.com/<your-username>/shift-scheduler/releases
 
----
-
-## Security notes (MVP)
-- Passwords are **hashed** (Werkzeug)
-- Session-based auth (no secrets in repo)
-- For a full version I’d add CSRF protection, input validation hardening, and rate limiting
-
----
-
-## v1.0 summary
-- List shifts, register/login, sign up with capacity guard, cancel, admin create shift
-- One smoke test and CI
-- This page published via **GitHub Pages** from `/docs`
+- Repo: https://github.com/iarmoghan/shift-scheduler  
+- Pages: https://iarmoghan.github.io/shift-scheduler/  
+- Issues: https://github.com/iarmoghan/shift-scheduler/issues  
+- Actions: https://github.com/iarmoghan/shift-scheduler/actions  
+- Releases: https://github.com/iarmoghan/shift-scheduler/releases
