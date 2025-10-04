@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>New Shift (Admin)</h2>
+<p><em>Login as admin@example.com / admin123 to access this page.</em></p>
+<form method="post" action="/admin/shifts">
+  <label>Title <input name="title" required></label><br>
+  <label>Location <input name="location"></label><br>
+  <label>Starts <input type="datetime-local" name="starts_at" required></label><br>
+  <label>Ends <input type="datetime-local" name="ends_at" required></label><br>
+  <label>Capacity <input type="number" name="capacity" min="1" value="1"></label><br>
+  <button>Create</button>
+</form>
+{% endblock %}

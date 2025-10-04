@@ -2,13 +2,19 @@
 {% block content %}
 <h2>Upcoming Shifts</h2>
 <table border="1" cellpadding="6">
-  <tr><th>Title</th><th>When</th><th>Where</th><th>Spots left</th></tr>
+  <tr><th>Title</th><th>When</th><th>Where</th><th>Spots left</th><th>Action</th></tr>
   {% for s in shifts %}
+  {% set spots_left = s['capacity'] - s['taken'] %}
   <tr>
     <td>{{ s['title'] }}</td>
     <td>{{ s['starts_at'] }} – {{ s['ends_at'] }}</td>
     <td>{{ s['location'] }}</td>
-    <td>{{ s['capacity'] - s['taken'] }}</td>
+    <td>{{ spots_left }}</td>
+    <td>
+      <form method="post" action="/shifts/{{ s['id'] }}/signups">
+        <button {% if spots_left <= 0 %}disabled{% endif %}>Sign Up</button>
+      </form>
+    </td>
   </tr>
   {% endfor %}
 </table>

@@ -5,11 +5,16 @@
 <p>No signups yet.</p>
 {% else %}
 <table border="1" cellpadding="6">
-  <tr><th>Shift</th><th>When</th></tr>
+  <tr><th>Shift</th><th>When</th><th>Action</th></tr>
   {% for i in items %}
   <tr>
     <td>{{ i['title'] }}</td>
     <td>{{ i['starts_at'] }} – {{ i['ends_at'] }}</td>
+    <td>
+      <form method="post" action="/signups/{{ i['signup_id'] }}/cancel">
+        <button>Cancel</button>
+      </form>
+    </td>
   </tr>
   {% endfor %}
 </table>
