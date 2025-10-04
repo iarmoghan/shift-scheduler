@@ -1,3 +1,5 @@
+
+# shift scheduler
 # Volunteer Shift Scheduler (Flask + SQLite)
 A tiny web app for organizations to create volunteer shifts and for volunteers to claim/cancel spots.
 
