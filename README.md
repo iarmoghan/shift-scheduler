@@ -93,14 +93,3 @@ Images live in `docs/screenshots/`:
 
 *(Previous versions: v2.0 added Bootstrap UI, search/filter, CSRF; v1.0 shipped the MVP + CI + Pages.)*
 
----
-
-## Links
-
-* Repo: [https://github.com/iarmoghan/shift-scheduler](https://github.com/iarmoghan/shift-scheduler)
-* Pages: [https://iarmoghan.github.io/shift-scheduler/](https://iarmoghan.github.io/shift-scheduler/)
-* Issues: [https://github.com/iarmoghan/shift-scheduler/issues](https://github.com/iarmoghan/shift-scheduler/issues)
-* Actions: [https://github.com/iarmoghan/shift-scheduler/actions](https://github.com/iarmoghan/shift-scheduler/actions)
-* Releases: [https://github.com/iarmoghan/shift-scheduler/releases](https://github.com/iarmoghan/shift-scheduler/releases)
-
-
