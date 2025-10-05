@@ -66,9 +66,8 @@ Then I open **[http://127.0.0.1:5000](http://127.0.0.1:5000)**
 
 Images live in `docs/screenshots/`:
 
-* ![Pages site](docs/screenshots/pages-1)
-* ![Pages site](docs/screenshots/pages-2)
-* ![Pages site](docs/screenshots/pages-3)
+* ![Pages site](docs/screenshots/home-intialv3.0.png)
+
 
 ---
 
