@@ -139,9 +139,9 @@ flowchart LR
 I keep them in `docs/screenshots/` and embed like this:
 
 ```md
-![PR open](screenshots/pr-feature-open.png)
-![PR merged](screenshots/pr-feature-merged.png)
-![Pages site](screenshots/pages.png)
+![PR open](screenshots/home-intialv3.0.png.png)
+![PR merged](screenshots/prv3.0_open.png)
+![Pages site](screenshots/prv3.0_merged.png)
 ![Release v1.0](screenshots/release-v1.0.png)
 ![Release v2.0](screenshots/release-v2.0.png)
 ![Release v3.0](screenshots/release-v3.0.png)
